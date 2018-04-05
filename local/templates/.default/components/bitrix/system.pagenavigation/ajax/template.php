@@ -7,7 +7,7 @@ $strNavQueryStringFull = ($arResult["NavQueryString"] != "" ? "?".$arResult["Nav
 if($arResult["NavPageCount"] > 1)
 {
 ?>
-<div class="news-wrap__button-wrap news-wrap__button-show-more">
+<div class="news-wrap__button-wrap news-wrap__button-show-more js-pagination-container">
 <?
 	$bFirst = true;
 
