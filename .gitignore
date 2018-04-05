@@ -1,0 +1,12 @@
+/bitrix/
+/upload/
+/webstat/
+
+node_modules/
+.idea/
+.DS_Store
+.htaccess
+deploy.php
+/.htaccess
+/sitemap.xml
+robots.txt
