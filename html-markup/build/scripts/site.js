@@ -1,1 +1,1 @@
-$(function(){});
+$(function(){$("body").on("click",".ajax-link",function(a){a.preventDefault(),$(".js-preloader-Wait").show();var t=$(this);$.get(t.attr("href"),function(a){$(".js-preloader-Wait").hide();var e=$(a);$(".ajax-list").append(e.find(".ajax-list").html()),e.find(".ajax-link").length?t.attr("href",e.find(".ajax-link").attr("href")):t.remove()})})});
