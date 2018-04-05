@@ -33,7 +33,7 @@ $(function () {
                 /** когда кнопка окажется на трети видимой части экрана,
                  * считая снизу, то сработает догрузка */
                 if ($('.ajax-link').length) {
-                    ajaxLoadContent(link, "append");
+                    ajaxLoadContent(linkGlobal, "append");
                 }
             }
 
@@ -55,11 +55,13 @@ $(function () {
             $(".js-preloader-Wait").show();
             linkGlobal.html(strTitleLoading);
 
+            var linkUrl = link.attr('href');
             $.get(link.attr('href'), function (data) {
                 $(".js-preloader-Wait").hide();
                 linkGlobal.html(strTitleNormal);
                 pageIsLoading = false;
 
+                history.pushState(null, null, linkUrl);
 
                 paginationWrap.find(".btn.btn_green-border").removeClass("btn_green-border").addClass("btn_green");
                 paginationWrap.find(".btn[data-page='" + page + "']").removeClass("btn_green").addClass("btn_green-border");
@@ -68,13 +70,13 @@ $(function () {
                 if (type == "append") {
                     $('.ajax-list').append(response.find('.ajax-list').html());
                 } else {
-                    alert(page + " - " + countPages);
 
                     $('.ajax-list').html(response.find('.ajax-list').html());
                     if (page < countPages) {
                         linkGlobal.show();
                     }
                 }
+
                 if (response.find('.ajax-link').length) {
                     linkGlobal.attr('href', response.find('.ajax-link').attr('href'));
                     page = Number(page) + 1;
