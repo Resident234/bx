@@ -3,7 +3,6 @@ $(function () {
     (function () {
 
         var pageIsLoading = false;
-        var lastPoint = 0;
         var paginationContainerForTrigger = $('.js-pagination-container');
         var link = paginationContainerForTrigger.find('.ajax-link');
         var linkGlobal = link;
@@ -24,11 +23,9 @@ $(function () {
             if ((typeof(pageIsLoading) != 'undefined') && pageIsLoading) {
                 return false;
             }
-            if (lastPoint > winScrollTop) {
-                lastPoint = winScrollTop;
-                return false;
-            }
-            lastPoint = winScrollTop;
+
+            if(page > countPages) return false;
+
             if (winScrollTop >= (scrollToElem + ($(window).height() / 3))) {
                 /** когда кнопка окажется на трети видимой части экрана,
                  * считая снизу, то сработает догрузка */
@@ -86,6 +83,7 @@ $(function () {
                 else {
                     //link.remove();
                     linkGlobal.hide();
+                    page = Number(page) + 1;
                 }
 
 
