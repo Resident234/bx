@@ -13,7 +13,8 @@ if($arResult["NavPageCount"] > 1)
 
 	if($arResult["NavPageNomer"] < $arResult["NavPageCount"]):
 ?>
-    <a href="<?=$arResult["sUrlPath"]?>?<?=$strNavQueryString?>PAGEN_<?=$arResult["NavNum"]?>=<?=($arResult["NavPageNomer"]+1)?>" class="btn ajax-link btn_green-border-center">Показать ещё</a>
+    <a href="<?=$arResult["sUrlPath"]?>?<?=$strNavQueryString?>PAGEN_<?=$arResult["NavNum"]?>=<?=($arResult["NavPageNomer"]+1)?>" class="btn ajax-link btn_green-border-center"
+    data-title-normal="Показать ещё" data-title-loading="Загружаем...">Показать ещё</a>
 <?
 	endif;
 ?>
