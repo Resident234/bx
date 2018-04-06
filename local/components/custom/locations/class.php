@@ -39,6 +39,14 @@ class StandardElementListComponent extends CBitrixComponent
     protected $tagCache;
 
     /**
+     * местоположение по умолчанию
+     * @var array
+     */
+    protected $arLocationDefault = array();
+
+
+
+    /**
      *
      * @var mixed
      */
@@ -165,6 +173,14 @@ class StandardElementListComponent extends CBitrixComponent
 	 */
 	protected function getCurrentLocation()
 	{
+
+        $arLocationDefault = array('CURRENT_CITY_HASH' => md5(
+            implode("_", array(
+            "Центральный федеральный округ", "Москва", "Москва"
+        ))),
+            'CURRENT_LOCATION_FORMATTED' => "RU, Центральный федеральный округ, Москва, Москва, 55.755787 - 37.617634",
+        );
+
         global $APPLICATION;
 
         if (!$_SESSION['GEO']['CURRENT_CITY_HASH'] || !$_SESSION['GEO']['CURRENT_LOCATION_FORMATTED']) {
@@ -194,8 +210,12 @@ class StandardElementListComponent extends CBitrixComponent
 
                 if (!empty($arCurrentCoordinates)) $arCurrentLocationFormatted[] = implode(" - ", $arCurrentCoordinates);
 
-                $this->arResult['CURRENT_CITY_HASH'] = md5(implode("_", array($geo_data['district'], $geo_data['region'], $geo_data['city'])));
-                $this->arResult['CURRENT_LOCATION_FORMATTED'] = implode(", ", $arCurrentLocationFormatted);
+                $this->arResult['CURRENT_CITY_HASH'] = $arLocationDefault["CURRENT_CITY_HASH"];
+                $this->arResult['CURRENT_LOCATION_FORMATTED'] = $arLocationDefault["CURRENT_LOCATION_FORMATTED"];
+
+                /** если ты не в СНГ, то ты в Москве */
+                if(empty($this->arResult['CURRENT_CITY_HASH'])) $this->arResult['CURRENT_CITY_HASH'] = md5(implode("_", array("Центральный федеральный округ", "Москва", "Москва")));
+                if(empty($this->arResult['CURRENT_LOCATION_FORMATTED'])) $this->arResult['CURRENT_LOCATION_FORMATTED'] = "RU, Центральный федеральный округ, Москва, Москва, 55.755787 - 37.617634";
 
                 $_SESSION['GEO']['CURRENT_CITY_HASH'] = $this->arResult['CURRENT_CITY_HASH'];
                 $_SESSION['GEO']['CURRENT_LOCATION_FORMATTED'] = $this->arResult['CURRENT_LOCATION_FORMATTED'];
