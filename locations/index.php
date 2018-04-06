@@ -7,6 +7,8 @@ require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
     array(
         'IBLOCK_TYPE' => "news",
         'IBLOCK_ID' => 1,
+        'HL_ID' => 3,
+        'COOKIE_TIME' => time() + 60 * 60 * 24 * 10,
         'IBLOCK_CODE' => "",
         'SHOW_NAV' => 'N',
         'COUNT' => 10,
