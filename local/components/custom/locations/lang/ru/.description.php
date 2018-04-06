@@ -1,6 +1,6 @@
 <?
-$MESS['STANDARD_ELEMENTS_LIST_DESCRIPTION_NAME'] = 'Список элементов';
-$MESS['STANDARD_ELEMENTS_LIST_DESCRIPTION_DESCRIPTION'] = 'Стандартный компонент для отображения списка элементов с постраничной навигацией';
-$MESS['STANDARD_ELEMENTS_LIST_DESCRIPTION_GROUP'] = 'Системные';
-$MESS['STANDARD_ELEMENTS_LIST_DESCRIPTION_DIR'] = 'Стандартные компоненты';
+$MESS['LOCATION_DESCRIPTION_NAME'] = 'Местоположение';
+$MESS['LOCATION_DESCRIPTION_DESCRIPTION'] = 'Компонет для отображения текущего местоположения';
+$MESS['LOCATION_DESCRIPTION_GROUP'] = 'Системные';
+$MESS['LOCATION_DESCRIPTION_DIR'] = 'Стандартные компоненты';
 ?>
