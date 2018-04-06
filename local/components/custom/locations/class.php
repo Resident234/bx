@@ -129,6 +129,15 @@ class StandardElementListComponent extends CBitrixComponent
 	{
 		if (!Main\Loader::includeModule('iblock'))
 			throw new Main\LoaderException(Loc::getMessage('STANDARD_ELEMENTS_LIST_CLASS_IBLOCK_MODULE_NOT_INSTALLED'));
+
+        if (!Main\Loader::includeModule('main'))
+            throw new Main\LoaderException(Loc::getMessage('STANDARD_ELEMENTS_LIST_CLASS_IBLOCK_MODULE_NOT_INSTALLED'));
+
+        if (!Main\Loader::includeModule('highloadblock'))
+            throw new Main\LoaderException(Loc::getMessage('STANDARD_ELEMENTS_LIST_CLASS_IBLOCK_MODULE_NOT_INSTALLED'));
+
+        if (!Main\Loader::includeModule('sale'))
+            throw new Main\LoaderException(Loc::getMessage('STANDARD_ELEMENTS_LIST_CLASS_IBLOCK_MODULE_NOT_INSTALLED'));
 	}
 	
 	/**
@@ -210,39 +219,6 @@ class StandardElementListComponent extends CBitrixComponent
 	 */
 	protected function getCurrentLocation()
 	{
-		$filter = array(
-			'IBLOCK_TYPE' => $this->arParams['IBLOCK_TYPE'],
-			'IBLOCK_ID' => $this->arParams['IBLOCK_ID'],
-			'ACTIVE' => 'Y'
-		);
-		$sort = array(
-			$this->arParams['SORT_FIELD1'] => $this->arParams['SORT_DIRECTION1'],
-			$this->arParams['SORT_FIELD2'] => $this->arParams['SORT_DIRECTION2']
-		);
-		$select = array(
-			'ID',
-			'NAME',
-			'DATE_ACTIVE_FROM',
-			'DETAIL_PAGE_URL',
-			'PREVIEW_TEXT',
-			'PREVIEW_TEXT_TYPE'
-		);
-		$iterator = \CIBlockElement::GetList($sort, $filter, false, $this->navParams, $select);
-		while ($element = $iterator->GetNext())
-		{
-			$this->arResult['ITEMS'][] = array(
-				'ID' => $element['ID'],
-				'NAME' => $element['NAME'],
-				'DATE' => $element['DATE_ACTIVE_FROM'],
-				'URL' => $element['DETAIL_PAGE_URL'],
-				'TEXT' => $element['PREVIEW_TEXT']
-			);
-		}
-		if ($this->arParams['SHOW_NAV'] == 'Y' && $this->arParams['COUNT'] > 0)
-		{
-			$this->arResult['NAV_STRING'] = $iterator->GetPageNavString('');
-		}
-
         global $APPLICATION;
 
         //if (!$_SESSION['GEO']['city']) {
@@ -260,6 +236,7 @@ class StandardElementListComponent extends CBitrixComponent
         if (!empty($geo_data['country'])) $arCurrentLocationFormatted[] = $geo_data['country'];
         if (!empty($geo_data['district'])) $arCurrentLocationFormatted[] = $geo_data['district'];
         if (!empty($geo_data['region'])) $arCurrentLocationFormatted[] = $geo_data['region'];
+        if (!empty($geo_data['city'])) $arCurrentLocationFormatted[] = $geo_data['city'];
 
         if (!empty($geo_data['lat'])) $arCurrentCoordinates[] = $geo_data['lat'];
         if (!empty($geo_data['lng'])) $arCurrentCoordinates[] = $geo_data['lng'];
@@ -267,17 +244,148 @@ class StandardElementListComponent extends CBitrixComponent
         if (!empty($arCurrentCoordinates)) $arCurrentLocationFormatted[] = implode(" - ", $arCurrentCoordinates);
 
         $this->arResult['CURRENT_LOCATION_FORMATTED'] = implode(", ", $arCurrentLocationFormatted);
+        $this->arResult['CURRENT_CITY_HASH'] = md5(implode("_", array($geo_data['district'], $geo_data['region'], $geo_data['city'])));
 
         //}
         //}
-
-
-
-
-
 
 	}
-	
+
+    /**
+     * получение id текущего пользователя
+     */
+    protected function getCurrentUserData()
+    {
+        global $USER;
+        $arUserInfo = array();
+
+        if ($USER->IsAuthorized()){
+            $currentUserID = $USER->GetID();// $USER->GetLogin() $USER->GetFullName()
+            $arUserInfo["ID"] = $currentUserID;
+            $arUserInfo["LOGIN"] = $USER->GetLogin();
+            $arUserInfo["NAME"] = $USER->GetFirstName();
+            $arUserInfo["LAST_NAME"] = $USER->GetLastName();
+        }else{
+            $currentFUserID = CSaleBasket::GetBasketUserID(); //FUSER_ID , и это не одно и тоже, что USER_ID
+
+            $res = Bitrix\Main\UserTable::getList(Array(
+                "select"=>Array("ID", "UF_*", "NAME", "LAST_NAME", "LOGIN"),
+                "filter"=>Array("=UF_FUSER_ID" => $currentFUserID),
+            ));
+            if ($arUser = $res->fetch()) {
+                $currentUserID = $arUser['ID'];
+                $arUserInfo["ID"] = $currentUserID;
+                $arUserInfo["LOGIN"] = $arUser['LOGIN'];
+                $arUserInfo["NAME"] = $arUser['NAME'];
+                $arUserInfo["LAST_NAME"] = $arUser['LAST_NAME'];
+
+            }else{
+                $user = new CUser;
+                $intRandUserNumber = rand(0, PHP_INT_MAX);
+                $intRandUserPassword = rand(0, PHP_INT_MAX);
+
+                $arFields = Array(
+                    "NAME" => "User" . $intRandUserNumber,
+                    "LAST_NAME" => "Anonymous" . $intRandUserNumber,
+                    "EMAIL" => "Anonymous" . $intRandUserNumber . "@mail.ru",
+                    "LOGIN" => "login" . $intRandUserNumber,
+                    "LID" => "ru",
+                    "ACTIVE" => "Y",
+                    "GROUP_ID" => array(3),
+                    "PASSWORD" => $intRandUserPassword,
+                    "CONFIRM_PASSWORD" => $intRandUserPassword,
+                    "UF_FUSER_ID" => $currentFUserID
+
+                );
+
+                $arUserInfo["LOGIN"] = $arFields['LOGIN'];
+                $arUserInfo["NAME"] = $arFields['NAME'];
+                $arUserInfo["LAST_NAME"] = $arFields['LAST_NAME'];
+
+                $currentUserID = $user->Add($arFields);
+                $arUserInfo["ID"] = $currentUserID;
+            }
+        }
+
+        return $arUserInfo;
+
+    }
+
+    /**
+     * добавление данных о текущем пользователе в HL влок
+     */
+    protected function addUserDataToHLblock(){
+        $arCurrentUserData = $this->getCurrentUserData();
+
+        $arHLBlock = Bitrix\Highloadblock\HighloadBlockTable::getById(3)->fetch();
+        $obEntity = Bitrix\Highloadblock\HighloadBlockTable::compileEntity($arHLBlock);
+        $strEntityDataClass = $obEntity->getDataClass();
+
+        $rsData = $strEntityDataClass::getList(array(
+            'select' => array("ID", 'UF_ID'),
+            'order' => array('ID' => 'ASC'),
+            'limit' => '1',
+            'filter' => array('UF_ID' => $arCurrentUserData["ID"]),
+        ));
+        if ($arData = $rsData->Fetch()) {
+            //обновить LAST_LOCATION_F
+            $data = array(
+                "UF_LAST_LOCATION_F" => $this->arResult['CURRENT_LOCATION_FORMATTED'],
+                "UF_CITY_HASH" => $this->arResult['CURRENT_CITY_HASH']
+            );
+            $strEntityDataClass::update($arData["ID"], $data);
+        }else{
+            //добавляем пользователя
+            $data = array(
+                "UF_ID"=> $arCurrentUserData["ID"],
+                "UF_LOGIN"=> $arCurrentUserData["LOGIN"],
+                "UF_NAME"=> $arCurrentUserData["NAME"],
+                "UF_LAST_NAME"=> $arCurrentUserData["LAST_NAME"],
+                "UF_LAST_LOCATION_F" => $this->arResult['CURRENT_LOCATION_FORMATTED'],
+                "UF_CITY_HASH" => $this->arResult['CURRENT_CITY_HASH']
+            );
+            $strEntityDataClass::add($data);
+        }
+    }
+
+
+    /**
+     * получение пользователей из текущего города
+     */
+    protected function getUsersFromCurrentCity()
+    {
+        $arHLBlock = Bitrix\Highloadblock\HighloadBlockTable::getById(3)->fetch();
+        $obEntity = Bitrix\Highloadblock\HighloadBlockTable::compileEntity($arHLBlock);
+        $strEntityDataClass = $obEntity->getDataClass();
+
+        $rsData = $strEntityDataClass::getList(array(
+            'select' => array("ID", "UF_ID", "UF_LOGIN", "UF_NAME", "UF_LAST_NAME", "UF_LAST_LOCATION_F"),
+            'order' => array('ID' => 'ASC'),
+            //'limit' => '1',
+            'filter' => array('UF_CITY_HASH' => $this->arResult['CURRENT_CITY_HASH']),
+        ));
+
+        $currentUserData = $this->getCurrentUserData();
+
+
+        $arUsersFromCurrentCityList = array();
+        while ($arData = $rsData->Fetch()) {
+            if($currentUserData["ID"] == $arData["UF_ID"]) continue;
+            $arUser = array();
+            if(!empty($arData["UF_LOGIN"])) $arUser[] = "<b>Логин:</b> " . $arData["UF_LOGIN"] . "<br>";
+            if(!empty($arData["UF_NAME"])) $arUser[] = "<b>Имя:</b> " . $arData["UF_NAME"] . "<br>";
+            if(!empty($arData["UF_LAST_NAME"])) $arUser[] = "<b>Фамилия:</b> " . $arData["UF_LAST_NAME"] . "<br>";
+            if(!empty($arData["UF_LAST_LOCATION_F"])) $arUser[] = "<b>Последнее местоположение:</b> " . $arData["UF_LAST_LOCATION_F"] . "<br><hr>";
+            $strUserInfo = implode("", $arUser);
+            $arUsersFromCurrentCityList[] = $strUserInfo;
+        }
+
+        $strUsersFromCurrentCityList = implode("", $arUsersFromCurrentCityList);
+        $this->arResult['UsersFromCurrentCityList'] = $strUsersFromCurrentCityList;
+
+
+    }
+
 	/**
 	 * выполняет действия после выполения компонента, например установка заголовков из кеша
 	 */
@@ -304,8 +412,11 @@ class StandardElementListComponent extends CBitrixComponent
 			if (!$this->readDataFromCache())
 			{
 			    $this->getIblockId();
+                $this->getHLEntityDataClass();
 				$this->getCurrentLocation();
-				$this->putDataToCache();
+                $this->addUserDataToHLblock();
+                $this->getUsersFromCurrentCity();
+                $this->putDataToCache();
 				$this->includeComponentTemplate();
 			}
 			$this->executeEpilog();

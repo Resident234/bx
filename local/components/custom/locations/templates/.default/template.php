@@ -5,3 +5,6 @@ Loc::loadMessages(__FILE__);
 $this->setFrameMode(true);
 ?>
 <?=$arResult["CURRENT_LOCATION_FORMATTED"];?>
+<hr>
+<br>
+<?=$arResult['UsersFromCurrentCityList'];?>
