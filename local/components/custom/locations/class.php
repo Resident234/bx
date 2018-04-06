@@ -210,12 +210,11 @@ class StandardElementListComponent extends CBitrixComponent
 
                 if (!empty($arCurrentCoordinates)) $arCurrentLocationFormatted[] = implode(" - ", $arCurrentCoordinates);
 
-                $this->arResult['CURRENT_CITY_HASH'] = $arLocationDefault["CURRENT_CITY_HASH"];
-                $this->arResult['CURRENT_LOCATION_FORMATTED'] = $arLocationDefault["CURRENT_LOCATION_FORMATTED"];
+                $this->arResult['CURRENT_CITY_HASH'] = md5(implode("_", array($geo_data['district'], $geo_data['region'], $geo_data['city'])));
+                $this->arResult['CURRENT_LOCATION_FORMATTED'] = implode(", ", $arCurrentLocationFormatted);
 
-                /** если ты не в СНГ, то ты в Москве */
-                if(empty($this->arResult['CURRENT_CITY_HASH'])) $this->arResult['CURRENT_CITY_HASH'] = md5(implode("_", array("Центральный федеральный округ", "Москва", "Москва")));
-                if(empty($this->arResult['CURRENT_LOCATION_FORMATTED'])) $this->arResult['CURRENT_LOCATION_FORMATTED'] = "RU, Центральный федеральный округ, Москва, Москва, 55.755787 - 37.617634";
+                if(empty($this->arResult['CURRENT_CITY_HASH'])) $this->arResult['CURRENT_CITY_HASH'] = $arLocationDefault['CURRENT_CITY_HASH'];
+                if(empty($this->arResult['CURRENT_LOCATION_FORMATTED'])) $this->arResult['CURRENT_LOCATION_FORMATTED'] = $arLocationDefault['CURRENT_LOCATION_FORMATTED'];
 
                 $_SESSION['GEO']['CURRENT_CITY_HASH'] = $this->arResult['CURRENT_CITY_HASH'];
                 $_SESSION['GEO']['CURRENT_LOCATION_FORMATTED'] = $this->arResult['CURRENT_LOCATION_FORMATTED'];
