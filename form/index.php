@@ -3,12 +3,6 @@ require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
 $APPLICATION->SetTitle("Заполнение формы");
 ?>
 
-<?
-echo "<pre>";
-print_r($_SESSION['GEO']);
-echo "</pre>";
-?>
-
 	<?$APPLICATION->IncludeComponent(
 		"aspro:form.stroy", "contacts",
 		Array(
