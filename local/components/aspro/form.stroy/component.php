@@ -221,11 +221,30 @@ if( CModule::IncludeModule("iblock") ){
 			$icon = !empty( $arQuestion["ICON"] ) ? '<i class="fa '.$arQuestion["ICON"].'"></i>' : '';
 			$html = '';
 
+
+			if(array_key_exists($arQuestion["CODE"], $arParams["DEFAULT_VALUES"])){
+                if(!empty($arParams["DEFAULT_VALUES"][$arQuestion["CODE"]])){
+                    $val = $arParams["DEFAULT_VALUES"][$arQuestion["CODE"]];
+                }
+            }
+
+            if(in_array($arQuestion["CODE"], $arParams["HIDDEN_VALUES"])){
+                $arResult["QUESTIONS"][$FIELD_CODE]['STRUCTURE'][0]['FIELD_TYPE'] = "hidden";
+                $arQuestion["FIELD_TYPE"] = "hidden";
+            }
+
+            //echo "<pre>";
+            //print_r($val);
+            //echo "</pre>";
+
 			switch( $arQuestion["FIELD_TYPE"] ){
 				case "text":
 					$html = '<input type="'.( $arQuestion["CODE"] == "EMAIL" ? "email" : "text" ).'" id="'.$arQuestion["CODE"].'" name="'.$arQuestion["CODE"].'" class="form-control '.$required.' '.$phone.'" '.$placeholder.' value="'.$val.'" />'.$icon;
 					break;
-				case "integer":
+                case "hidden":
+                    $html = '<input type="hidden" id="'.$arQuestion["CODE"].'" name="'.$arQuestion["CODE"].'" class="form-control '.$required.' '.$phone.'" '.$placeholder.' value="'.$val.'" />'.$icon;
+                    break;
+                case "integer":
 					$html = '<input type="number" id="'.$arQuestion["CODE"].'" name="'.$arQuestion["CODE"].'" class="form-control '.$required.'" '.$placeholder.' value="'.$val.'" />'.$icon;
 					break;
 				case "date":
@@ -291,8 +310,11 @@ if( CModule::IncludeModule("iblock") ){
 					break;
 			}
 
+
+
 			$arResult["QUESTIONS"][$FIELD_CODE]["VALUE"] = $val;
 			$arResult["QUESTIONS"][$FIELD_CODE]["HTML_CODE"] = $html;
+
 		}
 	}
 

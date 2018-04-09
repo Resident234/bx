@@ -3,6 +3,12 @@ require($_SERVER["DOCUMENT_ROOT"]."/bitrix/header.php");
 $APPLICATION->SetTitle("Заполнение формы");
 ?>
 
+<?
+echo "<pre>";
+print_r($_SESSION['GEO']);
+echo "</pre>";
+?>
+
 	<?$APPLICATION->IncludeComponent(
 		"aspro:form.stroy", "contacts",
 		Array(
@@ -23,7 +29,10 @@ $APPLICATION->SetTitle("Заполнение формы");
 			"DISPLAY_CLOSE_BUTTON" => "Y",
 			"CLOSE_BUTTON_NAME" => "Закрыть",
 			"CLOSE_BUTTON_CLASS" => "jqmClose btn btn-default bottom-close",
-		)
+			"DEFAULT_VALUES" => array("CURRENT_LOCATION_FORMATTED" => $_SESSION['GEO']['CURRENT_LOCATION_FORMATTED']),
+            "HIDDEN_VALUES" => array("CURRENT_LOCATION_FORMATTED"),
+
+        )
 	);?>
 
 
